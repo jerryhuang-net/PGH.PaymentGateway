@@ -27,37 +27,37 @@ namespace PGH.PaymentGateway
         /// <summary>
         /// Perform a combined AUTH/CAPTURE, with specified amount, using supplied Card 
         /// </summary>
-        void Purchase(Money money, CreditCard card, PaymentOptions options);
+        PaymentResult Purchase(Money money, CreditCard card, PaymentOptions options);
         /// <summary>
         /// Perform an AUTH, for a specified amount, using supplied Card
         /// </summary>
-        void Authorize(Money money, CreditCard card, PaymentOptions options);
+        PaymentResult Authorize(Money money, CreditCard card, PaymentOptions options);
         /// <summary>
         /// Capture a previous AUTH
         /// </summary>
-        void Capture(Money money, string transRef, PaymentOptions options);
+        PaymentResult Capture(Money money, string transRef, PaymentOptions options);
         /// <summary>
         /// Cancel a previous SALE, AUTH, or CAPTURE (if gateway supports it)
         /// </summary>
-        void Void(string transRef, PaymentOptions options);
+        PaymentResult Void(string transRef, PaymentOptions options);
         /// <summary>
         /// Refund a pervious transaction, partial refund is possible
         /// </summary>
-        void Refund(Money money, string transRef, PaymentOptions options);
+        PaymentResult Refund(Money money, string transRef, PaymentOptions options);
         /// <summary>
         /// which is like `refund`, but allows you to add money back to a card without having to reference a previous transaction.
         /// </summary>
         /// <param name="money"></param>
         /// <param name="card"></param>
-        void Credit(Money money, CreditCard card, PaymentOptions options);
+        PaymentResult Credit(Money money, CreditCard card, PaymentOptions options);
         /// <summary>
         /// Some Gateways support verification of card details
         /// </summary>
-        void Verify(CreditCard card, PaymentOptions options);
+        PaymentResult Verify(CreditCard card, PaymentOptions options);
         /// <summary>
         /// Use supplied card details, and obtain a card token.
         /// </summary>
-        void Store(CreditCard card, PaymentOptions options);
+        string Store(CreditCard card, PaymentOptions options);
         /// <summary>
         /// to void a card token
         /// </summary>
@@ -71,7 +71,6 @@ namespace PGH.PaymentGateway
         public string Password { get; set; }
         public string ApiKey { get; set; }
 
-        public string DefaultCurrency { get; internal set; }
         Dictionary<string, string> _dict;
         public Dictionary<string, string> OtherSettings
         {
@@ -94,6 +93,8 @@ namespace PGH.PaymentGateway
         /// the gateway's class name must be: ShortName+'Gateway'
         /// </summary>
         public string ShortName { get; internal set; }
+
+        public string DefaultCurrency { get; internal set; }
         public PaymentGatewaySettings Options { get; internal set; }
     }
 
@@ -104,8 +105,16 @@ namespace PGH.PaymentGateway
         /// merchant reference number which is normally unique per merchant
         /// </summary>
         public string MerchantRef { get; set; }
+        
+        public decimal Amount { get; set; }
+        public string Currency { get; set; }
 
-        public object OtherParameter { get; set; }
+    }
 
+    public class PaymentResult
+    {
+        public string MerchantId { get; set; }
+        public string MerchantRef { get; set; }
+        public string GatewayRef { get; set; }
     }
 }

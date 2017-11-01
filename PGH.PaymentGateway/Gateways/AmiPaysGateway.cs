@@ -8,6 +8,21 @@ namespace PGH.PaymentGateway.Gateways
 {
     public class AmiPaysGateway : PaymentGateway
     {
+        public override PaymentResult Authorize(Money money, CreditCard card, PaymentOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override PaymentResult Capture(Money money, string transRef, PaymentOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override PaymentResult Credit(Money money, CreditCard card, PaymentOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void Init(PaymentGatewaySettings options)
         {
             if (options == null)
@@ -17,6 +32,22 @@ namespace PGH.PaymentGateway.Gateways
                 options.BaseUrl = "https://www.Amipays.com/Api/Payin/";
             Parameters.Options = options;
         }
+
+        public override PaymentResult Purchase(Money money, CreditCard card, PaymentOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override PaymentResult Refund(Money money, string transRef, PaymentOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string Store(CreditCard card, PaymentOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void Test(string env = "")
         {
             if (Parameters.Options == null)
@@ -24,51 +55,17 @@ namespace PGH.PaymentGateway.Gateways
             Parameters.Options.BaseUrl = "http://test.amipays.com/Api/TestPayin/";
         }
 
-        public override void Authorize(Money money, CreditCard card, PaymentOptions options)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Capture(Money money, string transRef, PaymentOptions options)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Credit(Money money, CreditCard card, PaymentOptions options)
-        {
-            throw new NotImplementedException();
-        }
-
-      
-
-        public override void Purchase(Money money, CreditCard card, PaymentOptions options)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Refund(Money money, string transRef, PaymentOptions options)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Store(CreditCard card, PaymentOptions options)
-        {
-            throw new NotImplementedException();
-        }
-
-       
-
         public override void UnStore(CreditCard card, PaymentOptions options)
         {
             throw new NotImplementedException();
         }
 
-        public override void Verify(CreditCard card, PaymentOptions options)
+        public override PaymentResult Verify(CreditCard card, PaymentOptions options)
         {
             throw new NotImplementedException();
         }
 
-        public override void Void(string transRef, PaymentOptions options)
+        public override PaymentResult Void(string transRef, PaymentOptions options)
         {
             throw new NotImplementedException();
         }
