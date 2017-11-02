@@ -49,6 +49,8 @@ namespace PGH.PaymentGateway
             {
                 request.Proxy = new WebProxy(ConfigurationManager.AppSettings["HttpProxy"]
                     , int.Parse(ConfigurationManager.AppSettings["HttpProxyPort"]));
+                request.UseDefaultCredentials = true;
+                request.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
             }
             return request;
         }
@@ -56,7 +58,50 @@ namespace PGH.PaymentGateway
         {
             HttpWebRequest request = CreateWebRequest(url);
             request.ContentType = contentType;
+            WriteTraceLog("HTTP", string.Format("GET URL={0}", url));
+       
+            WriteTraceLog("HTTP", string.Format("ContentType={0}", contentType));
             return GetResponse(request.GetResponse());
+        }
+        private static object obj = new object();
+        protected static void WriteTraceLog(string category, string msg)
+        {
+
+            if (System.Web.HttpContext.Current != null)
+            {
+                System.Web.HttpContext.Current.Trace.Write(category, msg);
+                if (Convert.ToBoolean(System.Configuration.ConfigurationManager.AppSettings["EnableTraceLog"]))
+                {
+                    lock (obj)
+                    {
+                        string path = System.Web.HttpContext.Current.Server.MapPath("~/log");
+                        if (!System.IO.Directory.Exists(path))
+                        {
+                            System.IO.Directory.CreateDirectory(path);
+                        }
+                        path = System.IO.Path.Combine(path, DateTime.Now.ToString("yyyyMMdd") + ".txt");
+                        string line = string.Format("{0} {1}\n {2}\n" , DateTime.Now.ToString(), category, msg);
+                        System.IO.File.AppendAllText(path, line);
+                    }
+                }
+            }
+            else
+            {
+                if (Convert.ToBoolean(System.Configuration.ConfigurationManager.AppSettings["EnableTraceLog"]))
+                {
+                    lock (obj)
+                    {
+                        string path = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "log");
+                        if (!System.IO.Directory.Exists(path))
+                        {
+                            System.IO.Directory.CreateDirectory(path);
+                        }
+                        path = System.IO.Path.Combine(path, DateTime.Now.ToString("yyyyMMdd") + ".txt");
+                        string line = string.Format("{0} {1}\n {2}\n", DateTime.Now.ToString(), category, msg);
+                        System.IO.File.AppendAllText(path, line);
+                    }
+                }
+            }
         }
 
         protected T HttpGet<T>(string url, string contentType = "application/json")
@@ -70,6 +115,8 @@ namespace PGH.PaymentGateway
             HttpWebRequest request = CreateWebRequest(url);
             request.ContentType = contentType;
             request.Method = method;
+            WriteTraceLog("HTTP", string.Format("{1} URL={0}", url, method));
+            WriteTraceLog("HTTP", string.Format("ContentType={0}", contentType));
             if (!string.IsNullOrEmpty(postData))
             {
                 byte[] dataBuffer = System.Text.Encoding.UTF8.GetBytes(postData);
@@ -78,6 +125,7 @@ namespace PGH.PaymentGateway
                 {
                     webStream.Write(dataBuffer, 0, dataBuffer.Length);
                 }
+                WriteTraceLog("HTTP", string.Format("PostData={0}", postData));
             }
             return GetResponse(request.GetResponse());
         }
@@ -90,6 +138,7 @@ namespace PGH.PaymentGateway
 
         private static string GetResponse(WebResponse webResponse)
         {
+            WriteTraceLog("HTTP", string.Format("RESPONSE CODE={0}", (int)((HttpWebResponse) webResponse).StatusCode));
             using (var webStream = webResponse.GetResponseStream())
             {
                 if (webStream != null)
@@ -97,11 +146,14 @@ namespace PGH.PaymentGateway
                     using (var responseReader = new System.IO.StreamReader(webStream))
                     {
 
-                        return responseReader.ReadToEnd();
+                        var r = responseReader.ReadToEnd();
+                        WriteTraceLog("HTTP", string.Format("RESPONSE={0}", r));
+                        return r;
                     }
                 }
                 else
                 {
+                    WriteTraceLog("HTTP", "RESPONSE=EMPTY");
                     return string.Empty;
                 }
             }

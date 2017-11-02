@@ -47,33 +47,108 @@ namespace PGH.PaymentGateway.Gateways
 
         public override PaymentResult Void(string transRef, PaymentOptions options)
         {
-            throw new NotImplementedException();
+            if (options.GetType() != typeof(PayDollarPaymentOptions))
+                throw new ArgumentException("options parameter needs to be type of PayDollarPaymentOptions.");
+            PayDollarPaymentOptions opt = (PayDollarPaymentOptions)options;
+            string url = string.Format("{0}/merchant/api/orderApi.jsp", Parameters.Options.BaseUrl);
+            var sb = new StringBuilder();
+            sb.Append("merchantId=");
+            sb.Append(opt.MerchantId);
+            sb.Append("&loginId=");
+            sb.Append(opt.LoginId);
+            sb.Append("&password=");
+            sb.Append(opt.Password);
+            sb.Append("&actionType=Void");
+            sb.Append("&payRef=");
+            sb.Append(transRef);
+           
+            var result = HttpPost(url, sb.ToString(), "POST", "application/x-www-form-urlencoded");
+            var q = System.Web.HttpUtility.ParseQueryString(result);
+            var r = new PayDollarPaymentResult();
+            r.SuccessCode = q["resultCode"];
+            r.Message = q["errMsg"];
+            r.GatewayRef = q["payRef"];
+            r.MerchantRef = q["ref"];
+
+            if (!string.IsNullOrWhiteSpace(q["amt"]))
+                r.Amount = decimal.Parse(q["amt"]);
+
+            r.OrderStatus = q["orderStatus"];
+            r.Currency = q["cur"];
+            return r;
         }
 
         public override PaymentResult Authorize(Money money, CreditCard card, PaymentOptions options)
         {
-            throw new NotImplementedException();
+            if (options.GetType() != typeof(PayDollarPaymentOptions))
+                throw new ArgumentException("options parameter needs to be type of PayDollarPaymentOptions.");
+            PayDollarPaymentOptions opt = (PayDollarPaymentOptions)options;
+            //"H" means hold which is AUTH
+            return MakePayment(money, card, "H", opt);
         }
 
         public override PaymentResult Capture(Money money, string transRef, PaymentOptions options)
         {
-            throw new NotImplementedException();
+            if (options.GetType() != typeof(PayDollarPaymentOptions))
+                throw new ArgumentException("options parameter needs to be type of PayDollarPaymentOptions.");
+            PayDollarPaymentOptions opt = (PayDollarPaymentOptions)options;
+            string url = string.Format("{0}/merchant/api/orderApi.jsp", Parameters.Options.BaseUrl);
+            var sb = new StringBuilder();
+            sb.Append("merchantId=");
+            sb.Append(opt.MerchantId);
+            sb.Append("&loginId=");
+            sb.Append(opt.LoginId);
+            sb.Append("&password=");
+            sb.Append(opt.Password);
+            sb.Append("&actionType=Capture");
+            sb.Append("&payRef=");
+            sb.Append(transRef);
+            sb.Append("&amount=");
+            sb.Append(money.Amount);
+            var result = HttpPost(url, sb.ToString(), "POST", "application/x-www-form-urlencoded");
+            var q = System.Web.HttpUtility.ParseQueryString(result);
+            var r = new PayDollarPaymentResult();
+            r.SuccessCode = q["resultCode"];
+            r.Message = q["errMsg"];
+            r.GatewayRef = q["payRef"];
+            r.MerchantRef = q["ref"];
+           
+            if (!string.IsNullOrWhiteSpace(q["amt"]))
+                r.Amount = decimal.Parse(q["amt"]);
+
+            r.OrderStatus = q["orderStatus"];
+            r.Currency = q["cur"];
+            return r;
         }
 
         public override PaymentResult Credit(Money money, CreditCard card, PaymentOptions options)
         {
             throw new NotImplementedException();
         }
-
+       
         public override PaymentResult Purchase(Money money, CreditCard card, PaymentOptions options)
         {
             if (options.GetType() != typeof(PayDollarPaymentOptions))
                 throw new ArgumentException("options parameter needs to be type of PayDollarPaymentOptions.");
             PayDollarPaymentOptions opt = (PayDollarPaymentOptions)options;
+            //"N" is normal sales
+            return MakePayment(money, card, "N", opt);
+        }
+        /// <summary>
+        /// make payment or hold payment (AUTH)
+        /// </summary>
+        /// <param name="money"></param>
+        /// <param name="card"></param>
+        /// <param name="paymentType">H: hold only; N: payment</param>
+        /// <param name="opt"></param>
+        /// <returns></returns>
+        private PayDollarPaymentResult MakePayment(Money money, CreditCard card, string paymentType, PayDollarPaymentOptions opt)
+        {
+            opt.PaymentType = paymentType;
             string url = string.Format("{0}/directPay/payComp.jsp", Parameters.Options.BaseUrl);
             opt.Amount = money.Amount;
             opt.Currency = money.Currency;
-            
+
             string hash = string.Empty;
             //apply to authorized merchant only
             if (!string.IsNullOrEmpty(opt.SecretKey))
@@ -87,6 +162,8 @@ namespace PGH.PaymentGateway.Gateways
             sb.Append(opt.Password);
             sb.Append("&orderRef=");
             sb.Append(opt.MerchantRef);
+            sb.Append("&payType=");
+            sb.Append(opt.PaymentType);
             sb.Append("&amount=");
             sb.Append(money.Amount);
             sb.Append("&currCode=");
@@ -122,7 +199,8 @@ namespace PGH.PaymentGateway.Gateways
             if (!string.IsNullOrWhiteSpace(q["Amt"]))
                 r.Amount = decimal.Parse(q["Amt"]);
             r.Holder = q["Holder"];
-            r.TransactionTime = DateTime.Parse(q["TxTime"]);
+            if (!string.IsNullOrWhiteSpace(q["TxTime"]))
+                r.TransactionTime = DateTime.Parse(q["TxTime"]);
             r.BankRef = q["ord"];
             r.ApprovalCode = q["AuthId"];
             r.Currency = q["Cur"];
@@ -151,7 +229,36 @@ namespace PGH.PaymentGateway.Gateways
         }
         public override PaymentResult Refund(Money money, string transRef, PaymentOptions options)
         {
-            throw new NotImplementedException();
+            if (options.GetType() != typeof(PayDollarPaymentOptions))
+                throw new ArgumentException("options parameter needs to be type of PayDollarPaymentOptions.");
+            PayDollarPaymentOptions opt = (PayDollarPaymentOptions)options;
+            string url = string.Format("{0}/merchant/api/onlineApi.jsp", Parameters.Options.BaseUrl);
+            var sb = new StringBuilder();
+            sb.Append("merchantId=");
+            sb.Append(opt.MerchantId);
+            sb.Append("&loginId=");
+            sb.Append(opt.LoginId);
+            sb.Append("&password=");
+            sb.Append(opt.Password);
+            sb.Append("&actionType=OnlineReversal");
+            sb.Append("&payRef=");
+            sb.Append(transRef);
+            sb.Append("&amount=");
+            sb.Append(money.Amount);
+            var result = HttpPost(url, sb.ToString(), "POST", "application/x-www-form-urlencoded");
+            var q = System.Web.HttpUtility.ParseQueryString(result);
+            var r = new PayDollarPaymentResult();
+            r.SuccessCode = q["resultCode"];
+            r.Message = q["errMsg"];
+            r.GatewayRef = q["payRef"];
+            r.MerchantRef = q["ref"];
+
+            if (!string.IsNullOrWhiteSpace(q["amt"]))
+                r.Amount = decimal.Parse(q["amt"]);
+
+            r.OrderStatus = q["orderStatus"];
+            r.Currency = q["cur"];
+            return r;
         }
     }
 
@@ -187,5 +294,6 @@ namespace PGH.PaymentGateway.Gateways
         public string Holder { get; set; }
         public string ApprovalCode { get; set; }
         public DateTime TransactionTime { get; set; }
+        public string OrderStatus { get; set; }
     }
 }
