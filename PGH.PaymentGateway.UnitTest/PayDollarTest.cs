@@ -12,7 +12,7 @@ namespace PGH.PaymentGateway.UnitTest
         [TestMethod]
         public void TestPurchase()
         {
-            var gw = new PayDollarGateway();
+            var gw = PaymentGatewayFactory.CreateInstance("PayDollar");
             var settings = new PaymentGatewaySettings();
 
             gw.Init(settings);
@@ -34,7 +34,7 @@ namespace PGH.PaymentGateway.UnitTest
         [TestMethod]
         public void TestCapture()
         {
-            var gw = new PayDollarGateway();
+            var gw = PaymentGatewayFactory.CreateInstance("PayDollar");
             var settings = new PaymentGatewaySettings();
 
             gw.Init(settings);
@@ -60,7 +60,7 @@ namespace PGH.PaymentGateway.UnitTest
         [TestMethod]
         public void TestRefund()
         {
-            var gw = new PayDollarGateway();
+            var gw = PaymentGatewayFactory.CreateInstance("PayDollar");
             var settings = new PaymentGatewaySettings();
 
             gw.Init(settings);

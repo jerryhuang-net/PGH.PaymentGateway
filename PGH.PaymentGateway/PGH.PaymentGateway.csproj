@@ -52,6 +52,7 @@
     <Compile Include="IPaymentGateway.cs" />
     <Compile Include="Money.cs" />
     <Compile Include="PaymentGateway.cs" />
+    <Compile Include="PaymentGatewayFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

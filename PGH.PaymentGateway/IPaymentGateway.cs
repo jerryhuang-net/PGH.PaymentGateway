@@ -8,7 +8,7 @@ namespace PGH.PaymentGateway
 {
     //https://qiita.com/Ippoippo@github/items/c623364b32fb432cf3fb
     //https://github.com/activemerchant/active_merchant/wiki/Contributing
-    interface IPaymentGateway
+    public interface IPaymentGateway
     {
         /// <summary>
         /// get gateway's default parameters, such as name
